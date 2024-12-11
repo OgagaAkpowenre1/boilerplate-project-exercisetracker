@@ -71,11 +71,11 @@ app.post("/api/users/:_id/exercises", async (req, res) => {
     await user.save();
 
     res.json({
-      username: user.username,
       _id: user._id,
-      description: exercise.description,
-      duration: exercise.duration,
+      username: user.username,
       date: exercise.date,
+      duration: Number(exercise.duration),
+      description: exercise.description,
     });
   } catch (error) {
     console.error("Error adding exercise", error);
@@ -87,12 +87,16 @@ app.get("/api/users/:_id/logs", async (req, res) => {
   const { _id } = req.params;
   const { from, to, limit } = req.query;
   try {
+    if (!mongoose.Types.ObjectId.isValid(_id)) {
+      return res.status(400).json({ error: 'Invalid user ID' });
+    }
+
     const user = await User.findById(_id);
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
 
-    let exercises = user.exercises;
+    let exercises = user.log;
 
     if (from) {
       const fromDate = new Date(from);
